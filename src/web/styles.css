@@ -1,0 +1,246 @@
+/* Digital Economics — one hand-written stylesheet. Light/dark aware, responsive,
+   no external fonts or CDNs. */
+
+:root {
+  --bg: #ffffff;
+  --surface: #f8f9fa;
+  --border: #e2e6ea;
+  --text: #1a1a2e;
+  --muted: #5c6470;
+  --accent: #0f3460;
+  --link: #0f3460;
+  --tag-bg: #eef1f5;
+  --tag-text: #47506b;
+  --maxw: 44rem;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --serif: Georgia, 'Times New Roman', serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14151a;
+    --surface: #1c1e26;
+    --border: #2a2d38;
+    --text: #e7e9ee;
+    --muted: #9aa1ad;
+    --accent: #7aa2d6;
+    --link: #8fb4e6;
+    --tag-bg: #23262f;
+    --tag-text: #aeb6c6;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 17px;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 4rem;
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* header */
+.site-header {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+}
+.site-header h1 {
+  font-size: 1.4rem;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.site-header h1 a {
+  color: var(--text);
+}
+.site-header .tagline {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0.15rem 0 0;
+}
+.site-nav {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 1rem;
+  font-size: 0.92rem;
+}
+
+/* post list */
+.post-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+.post-item h2 {
+  font-size: 1.25rem;
+  margin: 0 0 0.25rem;
+  line-height: 1.3;
+}
+.post-meta {
+  color: var(--muted);
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+.tag {
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.post-excerpt {
+  color: var(--muted);
+  margin: 0.35rem 0 0;
+}
+
+/* single post */
+article.post h1 {
+  font-size: 1.9rem;
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.015em;
+}
+article.post .post-body {
+  font-family: var(--serif);
+  font-size: 1.12rem;
+  line-height: 1.8;
+}
+article.post .post-body h1,
+article.post .post-body h2,
+article.post .post-body h3 {
+  font-family: var(--font);
+  line-height: 1.3;
+  margin-top: 2rem;
+}
+article.post .post-body a {
+  text-decoration: underline;
+}
+article.post .post-body img {
+  max-width: 100%;
+  height: auto;
+}
+article.post .post-body pre {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.9rem;
+  overflow-x: auto;
+  font-size: 0.9rem;
+}
+article.post .post-body code {
+  font-size: 0.92em;
+}
+article.post .post-body blockquote {
+  border-left: 3px solid var(--border);
+  margin: 1.2rem 0;
+  padding-left: 1rem;
+  color: var(--muted);
+}
+
+/* subscribe box */
+.subscribe {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin: 2.5rem 0;
+}
+.subscribe h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+.subscribe p {
+  margin: 0 0 0.85rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+.subscribe form {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.subscribe input[type='email'] {
+  flex: 1 1 14rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+.subscribe button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.subscribe button:hover {
+  opacity: 0.9;
+}
+
+/* notices (confirm / unsubscribe / errors) */
+.notice {
+  max-width: var(--maxw);
+  margin: 3rem auto;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.notice.ok {
+  border-color: #2f9e6b;
+}
+.notice.err {
+  border-color: #c65b5b;
+}
+
+/* footer */
+.site-footer {
+  border-top: 1px solid var(--border);
+  margin-top: 3rem;
+  padding-top: 1.25rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+}
