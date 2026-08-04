@@ -1,4 +1,5 @@
 import { config } from '../config.js';
+import { mdToHtml } from '../web/markdown.js';
 
 export interface EmailMessage {
   to: string;
@@ -35,15 +36,38 @@ class ConsoleTransport implements Transport {
   }
 }
 
+/**
+ * Production transport: Resend. Used when RESEND_API_KEY is set. The `resend`
+ * package is imported lazily so the app runs without it on the console path.
+ */
+class ResendTransport implements Transport {
+  readonly name = 'resend';
+  constructor(private readonly apiKey: string) {}
+  async send(msg: EmailMessage): Promise<void> {
+    const { Resend } = await import('resend');
+    const resend = new Resend(this.apiKey);
+    const { error } = await resend.emails.send({
+      from: config.EMAIL_FROM,
+      to: msg.to,
+      subject: msg.subject,
+      html: msg.html,
+      text: msg.text,
+    });
+    if (error) throw new Error(`Resend error: ${error.message ?? String(error)}`);
+  }
+}
+
 let transport: Transport | null = null;
 
 /**
- * Select the email transport from config. Console unless a real transport is
- * configured (Resend is wired in a later milestone). Overridable for tests.
+ * Select the email transport from config: Resend when RESEND_API_KEY is set,
+ * otherwise the console transport (zero setup). Overridable for tests.
  */
 export function getTransport(): Transport {
   if (transport) return transport;
-  transport = new ConsoleTransport();
+  transport = config.RESEND_API_KEY
+    ? new ResendTransport(config.RESEND_API_KEY)
+    : new ConsoleTransport();
   return transport;
 }
 
@@ -81,6 +105,37 @@ Unsubscribe at any time: ${unsub}`;
     <a href="${unsub}" style="color:#5c6470">Unsubscribe</a></p>
   </body></html>`;
   return { to, subject: `Confirm your subscription to ${config.SITE_NAME}`, html, text };
+}
+
+export interface RoundupInput {
+  to: string;
+  token: string;
+  subject: string;
+  roundupMd: string;
+  postUrl: string;
+}
+
+/**
+ * Weekly arc roundup email: the arc's findings (markdown) plus a button linking
+ * to the full piece on our site, and a per-recipient unsubscribe link.
+ */
+export function buildRoundupEmail(input: RoundupInput): EmailMessage {
+  const unsub = unsubscribeUrl(input.token);
+  const text = `${input.roundupMd}
+
+Read the full piece: ${input.postUrl}
+
+—
+${config.SITE_NAME}
+Unsubscribe: ${unsub}`;
+  const html = `<!doctype html><html><body style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.65;color:#1a1a2e;max-width:640px;margin:0 auto;padding:8px">
+    <div style="font-size:16px">${mdToHtml(input.roundupMd)}</div>
+    <p style="margin:24px 0"><a href="${input.postUrl}" style="display:inline-block;background:#0f3460;color:#fff;padding:11px 20px;border-radius:6px;text-decoration:none;font-weight:600">Read the full piece →</a></p>
+    <hr style="border:none;border-top:1px solid #e2e6ea;margin:24px 0">
+    <p style="color:#5c6470;font-size:12px">${escapeHtml(config.SITE_NAME)} — ${escapeHtml(config.SITE_TAGLINE)}<br>
+    <a href="${unsub}" style="color:#5c6470">Unsubscribe</a></p>
+  </body></html>`;
+  return { to: input.to, subject: input.subject, html, text };
 }
 
 export function escapeHtml(s: string): string {
