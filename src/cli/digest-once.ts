@@ -7,7 +7,6 @@ import type { Movement } from '../db/types.js';
 import { MissingApiKeyError, RefusalError } from '../pipeline/anthropic.js';
 import {
   MOVEMENT_ORDER,
-  arcContext,
   generateArc,
   generateText,
   publishArcArticle,
