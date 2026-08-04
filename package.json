@@ -1,0 +1,39 @@
+{
+  "name": "daily-dispatch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Digital Economics — a small publishing site with an AI-assisted weekly newsletter engine.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "digest:once": "tsx src/cli/digest-once.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
+    "@hono/node-server": "^1.13.7",
+    "croner": "^9.0.0",
+    "hono": "^4.6.14",
+    "marked": "^15.0.4",
+    "resend": "^4.0.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.2",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "^2.1.8"
+  }
+}
