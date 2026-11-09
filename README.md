@@ -44,6 +44,8 @@ All configuration is via environment variables, validated with zod at startup
 (missing/invalid required vars fail fast with a clear message). See
 `.env.example` for the full list. Secrets live only in `.env` (gitignored) — the
 example file ships with empty values.
+Production requires a unique `ADMIN_TOKEN` of at least 32 characters; the
+development default is rejected when `NODE_ENV=production`.
 
 ## The weekly content pipeline
 
@@ -85,8 +87,9 @@ friendly message.
 
 ### Or drive it over HTTP (admin, token-gated)
 
-All `/admin/*` routes require `ADMIN_TOKEN` via the `x-admin-token` header or
-`?token=`:
+All `/admin/*` routes require `ADMIN_TOKEN` via the `x-admin-token` header.
+Tokens in URLs are rejected so they do not leak through access logs or browser
+history. Markdown is sanitized before it is rendered as HTML.
 
 ```bash
 # Seed the week's arc:
@@ -98,7 +101,7 @@ curl -X POST localhost:3000/admin/posts -H "x-admin-token: $ADMIN_TOKEN" \
   -d kind=note -d title="…" -d body_md="…" -d publish=true
 
 # Run the weekly pipeline now (generate → publish → email → external):
-curl -X POST "localhost:3000/admin/digest/run?token=$ADMIN_TOKEN"
+curl -X POST localhost:3000/admin/digest/run -H "x-admin-token: $ADMIN_TOKEN"
 ```
 
 ## Newsletter

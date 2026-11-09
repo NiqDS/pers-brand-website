@@ -1,4 +1,5 @@
 import { marked } from 'marked';
+import sanitizeHtml from 'sanitize-html';
 
 // Digest and article bodies are our own trusted markdown (authored by us or by
 // the pipeline), so we render them to HTML directly. GitHub-flavored line breaks
@@ -6,7 +7,7 @@ import { marked } from 'marked';
 marked.use({ gfm: true, breaks: false, async: false });
 
 export function mdToHtml(md: string): string {
-  return marked.parse(md, { async: false }) as string;
+  return sanitizeHtml(marked.parse(md, { async: false }) as string);
 }
 
 /** A short plain-text excerpt from markdown, for list pages and previews. */

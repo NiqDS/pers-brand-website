@@ -15,6 +15,7 @@ const schema = z.object({
   BASE_URL: z.string().url().default('http://localhost:3000'),
   DATABASE_PATH: z.string().min(1).default('./data/app.db'),
   ADMIN_TOKEN: z.string().min(1).default('change-me-long-random'),
+  NODE_ENV: z.string().default('development'),
   SITE_NAME: z.string().min(1).default('Digital Economics'),
   SITE_TAGLINE: z.string().min(1).default('AI, Finance & Financial Literacy'),
 
@@ -41,12 +42,23 @@ const schema = z.object({
   LINKEDIN_CLIENT_ID: z.string().optional(),
   LINKEDIN_CLIENT_SECRET: z.string().optional(),
   LINKEDIN_AUTHOR_URN: z.string().optional(),
+}).superRefine((cfg, ctx) => {
+  if (
+    cfg.NODE_ENV === 'production' &&
+    (cfg.ADMIN_TOKEN === 'change-me-long-random' || cfg.ADMIN_TOKEN.length < 32)
+  ) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['ADMIN_TOKEN'],
+      message: 'must be a unique secret of at least 32 characters in production',
+    });
+  }
 });
 
 export type Config = z.infer<typeof schema>;
 
 function loadConfig(): Config {
-  const parsed = schema.safeParse(process.env);
+  const parsed = parseConfig(process.env);
   if (!parsed.success) {
     const issues = parsed.error.issues
       .map((i) => `  - ${i.path.join('.') || '(root)'}: ${i.message}`)
@@ -56,6 +68,10 @@ function loadConfig(): Config {
     process.exit(1);
   }
   return parsed.data;
+}
+
+export function parseConfig(env: NodeJS.ProcessEnv) {
+  return schema.safeParse(env);
 }
 
 export const config = loadConfig();

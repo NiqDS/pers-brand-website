@@ -7,9 +7,9 @@ import { runWeeklyJob } from '../newsletter/run.js';
 
 export const adminRoutes = new Hono();
 
-/** Gate every /admin route behind ADMIN_TOKEN (header or ?token=). */
+/** Gate every /admin route behind ADMIN_TOKEN; keep it out of URLs and access logs. */
 adminRoutes.use('/admin/*', async (c: Context, next: Next) => {
-  const provided = c.req.header('x-admin-token') ?? c.req.query('token') ?? '';
+  const provided = c.req.header('x-admin-token') ?? '';
   if (provided !== config.ADMIN_TOKEN) {
     return c.json({ error: 'unauthorized' }, 401);
   }
@@ -20,7 +20,7 @@ const postSchema = z.object({
   kind: z.enum(['article', 'note']),
   title: z.string().trim().min(1),
   body_md: z.string().min(1),
-  publish: z.coerce.boolean().optional(),
+  publish: z.preprocess((value) => value === true || value === 'true', z.boolean()),
 });
 
 // Create/publish an article or note by hand (markdown in, slug auto-generated).

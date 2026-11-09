@@ -50,6 +50,45 @@ describe('admin routes', () => {
     expect(json.url).toContain('/p/');
   });
 
+  it('does not publish when the form sends publish=false', async () => {
+    const res = await app.request('/admin/posts', {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded', 'x-admin-token': TOKEN },
+      body: new URLSearchParams({
+        kind: 'note',
+        title: 'A draft',
+        body_md: 'Draft body.',
+        publish: 'false',
+      }).toString(),
+    });
+    expect(res.status).toBe(201);
+    const json = (await res.json()) as { status: string };
+    expect(json.status).toBe('draft');
+  });
+
+  it('rejects admin tokens in query strings', async () => {
+    const res = await app.request(`/admin/digest/run?token=${TOKEN}`, { method: 'POST' });
+    expect(res.status).toBe(401);
+  });
+
+  it('sanitizes HTML authored in Markdown before publishing', async () => {
+    const create = await app.request('/admin/posts', {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded', 'x-admin-token': TOKEN },
+      body: new URLSearchParams({
+        kind: 'article',
+        title: 'Sanitization test',
+        body_md: '<img src=x onerror=alert(1)> <script>alert(2)</script>',
+        publish: 'true',
+      }).toString(),
+    });
+    const post = (await create.json()) as { slug: string };
+    const page = await app.request(`/p/${post.slug}`);
+    const html = await page.text();
+    expect(html).not.toContain('onerror');
+    expect(html).not.toContain('<script>');
+  });
+
   it('runs the weekly digest end-to-end (publish + deliver)', async () => {
     // Editor prepares an arc with drafts during the week (here: seeded directly).
     const arc = insertArc({
@@ -64,7 +103,10 @@ describe('admin routes', () => {
     const sub = upsertPendingSubscriber('reader@example.com');
     confirmSubscriberByToken(sub.confirm_token);
 
-    const res = await app.request(`/admin/digest/run?token=${TOKEN}`, { method: 'POST' });
+    const res = await app.request('/admin/digest/run', {
+      method: 'POST',
+      headers: { 'x-admin-token': TOKEN },
+    });
     expect(res.status).toBe(200);
     const report = (await res.json()) as { ran: boolean; postSlug: string; delivery: string };
     expect(report.ran).toBe(true);
@@ -73,7 +115,10 @@ describe('admin routes', () => {
     expect(sent).toHaveLength(1);
 
     // Re-running does not resend (idempotent delivery).
-    const again = await app.request(`/admin/digest/run?token=${TOKEN}`, { method: 'POST' });
+    const again = await app.request('/admin/digest/run', {
+      method: 'POST',
+      headers: { 'x-admin-token': TOKEN },
+    });
     const report2 = (await again.json()) as { delivery: string };
     expect(report2.delivery).toBe('skipped (0)');
     expect(sent).toHaveLength(1);
